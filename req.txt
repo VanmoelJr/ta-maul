@@ -1,0 +1,8 @@
+# Requirement Library
+- os
+- request
+- request.urrlib
+- beautifullsoup
+- htmldom
+- re
+- lxml
