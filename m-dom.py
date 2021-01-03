@@ -1,12 +1,19 @@
 import os
 import time
 import psutil
-import multiprocessing
+import requests
 from htmldom import htmldom
+from multiprocessing import Pool
 
-def ini_dom():
-	
-	dom = htmldom.HtmlDom('https://mmaul.tech/scrapeit').createDom()
+base_url = 'https://www.codelatte.org/maul/'
+all_urls = list()
+
+def rand_url():
+    for i in range(5):
+        all_urls.append(base_url + str(i))
+
+def ini_htmldom(url):
+	dom = htmldom.HtmlDom(url).createDom()	
 	nama = dom.find("td[id=nama]")
 	alamat = dom.find("td[id=alamat]")
 	data = dom.find("td[id=data]")
@@ -24,27 +31,43 @@ def ini_dom():
 	t = len(tg)
 	a = len(al)
 	s = len(sn)
-
+	
+	print("\nTotal Objek didapat : {}".format(n+e+t+a+s))
 	print(nm,al,tg,em,sn)
-	print("\nTotal Object Didapat :",n+e+t+a+s)
 
-if __name__ == '__main__':
-	start = time.time()
-	memori1 = psutil.Process(os.getpid()).memory_info().rss
-	up = psutil.net_io_counters().bytes_sent
-	down = psutil.net_io_counters().bytes_recv
-	cpu0 = psutil.cpu_percent()
-	exe = multiprocessing.Process(target=ini_dom)
-	exe.start()
+rand_url()
 
-	end = time.time()
-	memori2 = psutil.Process(os.getpid()).memory_info().rss
-	up0 = psutil.net_io_counters().bytes_sent
-	down0 = psutil.net_io_counters().bytes_recv
-	cpu = psutil.cpu_percent()
-	exe.join()
+# Multiprocessing Pool
+p = Pool(10)
+# Menghitung Waktu Proses
+start = time.time()
+# Menghitung Penggunaan Memori Start
+memori1 = psutil.Process(os.getpid()).memory_info().rss
+# Menghitung Bandwith Upstream dan Downstream
+up = psutil.net_io_counters().bytes_sent
+down = psutil.net_io_counters().bytes_recv
+#Menghitung Penggunaan CPU Dalam Persen
+#cpu0 = psutil.cpu_percent()
+# Map Pool Process
+p.map(ini_htmldom, all_urls)
+p.terminate()
+p.join()
 
-	print("Penggunaan memory :",memori2-memori1,"bytes")
-	print("Waktu proses :",end-start,"second")
-	print("Penggunaan Bandwidth : Upstream =",up0-up,"Downstream = ",down0-down)
-	print("CPU yang digunakan :",cpu-cpu0,"%")
+# End Time
+end = time.time()
+# Menghitung Penggunaan Memori End
+memori2 = psutil.Process(os.getpid()).memory_info().rss
+# Menghitung Bandwith Usage
+up0 = psutil.net_io_counters().bytes_sent
+down0 = psutil.net_io_counters().bytes_recv
+# Hasil Persentase CPU
+cpu = psutil.cpu_percent()
+
+# Hasil Penggunaan Memori
+print("\nPenggunaan memory : {} bytes".format(memori2-memori1))
+# Hasil Waktu Proses
+print("Waktu proses : {} second".format(end-start))
+# Hasil Bandwidth Upstream & Downstream
+print("Penggunaan Bandwidth : Upstream = {} Downstream = {}".format(up0-up,down0-down))
+# Hasil Penggunaan CPU
+print("CPU yang digunakan : {} %".format(cpu))
